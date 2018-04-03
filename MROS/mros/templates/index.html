@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Title</title>
+    <link rel="stylesheet" href="/statics/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link href="/statics/plugins/bootstrap-datetimepicker-master/css/bootstrap-datetimepicker.css" rel="stylesheet">
+    <style>
+        .reserved {
+            background-color: #62c462;
+        }
+
+    </style>
+</head>
+<body>
+<p>
+<h3>会议室预定</h3></p>
+<div class="container-fluid">
+    <div class="input-append date" id="datetimepicker">
+        当前选择日期：<input id="choiceDate" size="16" type="text" readonly>
+        <span class="add-on"><i class="icon-th"></i></span>
+    </div>
+    <table class="table table-bordered">
+
+        <thead>
+        <tr>
+            <th>会议室</th>
+            {% for time in times %}
+            <td>{{time.time_period}}</td>
+            {% endfor %}
+
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for k,room in msg.items() %}
+        <tr>
+            <td>{{room.name}}</td>
+            {% for time in room.time_list %}
+
+            {% if r_time_dict.get(k) and time.tid in r_time_dict.get(k)%}
+            <td class="reserved">
+                <span class="roomID" style="display: none">{{k}}</span>
+                <span class="timeID" style="display: none">{{time.tid}}</span>
+            </td>
+            {% else %}
+            <td class="reserve">
+                <span class="roomID" style="display: none">{{k}}</span>
+                <span class="timeID" style="display: none">{{time.tid}}</span>
+            </td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+<script type="text/javascript" src="/statics/js/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="/statics/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+<script type="text/javascript"
+        src="/statics/plugins/bootstrap-datetimepicker-master/js/bootstrap-datetimepicker.js"></script>
+<script type="text/javascript"
+        src="/statics/plugins/bootstrap-datetimepicker-master/js/locales/bootstrap-datetimepicker.zh-CN.js"
+        charset="UTF-8"></script>
+
+<script>
+
+
+    $(document).ready(function () {
+        console.log();
+        if (location.search) {
+            var p_date = GetUrlParam('date');
+            $("#choiceDate").val(p_date);
+        } else {
+            var myDate = new Date();
+            var year = myDate.getFullYear();
+            var month = myDate.getMonth() + 1;
+            var date = myDate.getDate();
+            if (month < 10) {
+                month = '0' + month
+            }
+            var c_date = year + '-' + month + '-' + date;
+            $("#choiceDate").val(c_date);
+        }
+
+        $('#datetimepicker').datetimepicker({
+            autoclose: true,
+            format: "yyyy-mm-dd",
+            startDate: new Date(),  // 限定可选时间为今天之后，
+            language: 'zh-CN',
+            startView: 2,
+            minView: 2,
+            maxView: 3,
+            todayBtn: true,
+            todayHighlight: true
+        }).on('changeDate', function (ev) {
+            var new_date = $("#choiceDate").val();
+            $.ajax({
+                url: "/index/reserve?date=" + new_date,
+                type: "GET",
+                success: function (data) {
+                    location.replace("/index/reserve?date=" + new_date);
+                    $("#choiceDate").val(new_date);
+
+                }
+            })
+
+        });
+
+
+        $('.reserve').on('click', function () {
+        var choiceDate = $("#choiceDate").val();
+        var roomId = $(this).children('.roomID').text();
+        var timeId = $(this).children('.timeID').text();
+        var obj = $(this);
+        $.ajax({
+            url: "/index/reserve",
+            type: "POST",
+            data: {
+                choiceDate: choiceDate,
+                choiceTime: timeId,
+                choiceRoom: roomId
+            },
+            success: function (data) {
+                if (JSON.parse(data).code === 800) {
+                    obj.toggleClass('reserved');
+                }
+                else {
+                    console.log(data.msg)
+                }
+            }
+        })
+    });
+
+        $('.reserved').on('click', function () {
+            var choiceDate = $("#choiceDate").val();
+            var roomId = $(this).children('.roomID').text();
+            var timeId = $(this).children('.timeID').text();
+            var obj = $(this);
+            $.ajax({
+                url: "/index/delete",
+                type: "POST",
+                data: {
+                    choiceDate: choiceDate,
+                    choiceTime: timeId,
+                    choiceRoom: roomId
+                },
+                success: function (data) {
+                    if (JSON.parse(data).code === 800) {
+                        obj.toggleClass('reserved');
+                    }
+                    else {
+                        console.log(data.msg)
+                    }
+                }
+            })
+
+
+        });
+
+        function GetUrlParam(paraName) {
+            // 获取当前url中的指定参数
+            var url = document.location.toString();
+            var arrObj = url.split("?");
+
+            if (arrObj.length > 1) {
+                var arrPara = arrObj[1].split("&");
+                var arr;
+
+                for (var i = 0; i < arrPara.length; i++) {
+                    arr = arrPara[i].split("=");
+
+                    if (arr != null && arr[0] == paraName) {
+                        return arr[1];
+                    }
+                }
+                return "";
+            }
+            else {
+                return "";
+            }
+        }
+
+
+    })
+
+
+</script>
+</body>
+</html>

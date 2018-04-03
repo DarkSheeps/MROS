@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Title</title>
+    <link rel="stylesheet" href="/statics/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+
+</head>
+<body>
+<p>
+<h3>用户登录</h3></p>
+<div>
+    <form class="form-horizontal" method="post" novalidate style="padding:0  50px">
+        {% for field in form %}
+        <div class="form-group">
+            <div class="col-md-4 col-md-offset-2">
+                {{field.label}}:{{field}}
+                <span style="color: red;">{{field.errors[0] }}</span>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="form-group">
+            <div class="col-md-offset-3 col-sm-10">
+                <button type="submit" class="btn btn-info">提交</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
